@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SalesIQ — Connexion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#f4f6f9; --card:#ffffff; --border:#dde1ea;
+      --accent:#2563eb; --accent2:#1e40af; --accent3:#059669;
+      --text:#1a1f2e; --text-dim:#64748b; --danger:#dc2626;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Syne',sans-serif; background:var(--bg);
+      color:var(--text); min-height:100vh;
+      display:grid; grid-template-columns:1fr 1fr;
+    }
+
+    /* ── GAUCHE ── */
+    .left-panel {
+      background:linear-gradient(145deg,#1e3a8a 0%,#1e40af 40%,#2563eb 100%);
+      display:flex; flex-direction:column; justify-content:space-between;
+      padding:48px; position:relative; overflow:hidden;
+    }
+    .left-panel::before {
+      content:''; position:absolute; width:500px; height:500px;
+      background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);
+      top:-100px; right:-100px; pointer-events:none;
+    }
+    .left-logo { display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
+    .left-logo-mark { width:44px; height:44px; background:white; border-radius:12px; display:grid; place-items:center; font-size:20px; font-weight:800; color:var(--accent); }
+    .left-logo-name { font-size:20px; font-weight:800; color:white; }
+    .left-logo-sub  { font-size:10px; color:rgba(255,255,255,0.6); font-family:'Space Mono',monospace; letter-spacing:1px; }
+
+    .left-content { position:relative; z-index:1; }
+    .left-content h1 { font-size:38px; font-weight:800; line-height:1.15; letter-spacing:-1px; margin-bottom:16px; color:white; }
+    .left-content h1 span { color:#bfdbfe; }
+    .left-content p { color:rgba(255,255,255,0.7); font-size:15px; line-height:1.7; max-width:380px; margin-bottom:32px; }
+
+    .features { display:flex; flex-direction:column; gap:12px; }
+    .feature-item { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 16px; }
+    .feature-icon { width:34px; height:34px; border-radius:8px; background:rgba(255,255,255,0.15); display:grid; place-items:center; font-size:10px; font-weight:800; font-family:'Space Mono',monospace; color:white; flex-shrink:0; }
+    .feature-text strong { display:block; font-size:13px; font-weight:700; color:white; margin-bottom:2px; }
+    .feature-text span   { font-size:11px; color:rgba(255,255,255,0.6); }
+    .left-footer { font-size:12px; color:rgba(255,255,255,0.4); position:relative; z-index:1; }
+
+    /* ── DROITE ── */
+    .right-panel { display:flex; align-items:center; justify-content:center; padding:48px 40px; background:var(--card); }
+    .auth-box { width:100%; max-width:420px; }
+    .auth-box h2 { font-size:24px; font-weight:800; margin-bottom:6px; letter-spacing:-0.5px; }
+    .subtitle { color:var(--text-dim); font-size:13px; margin-bottom:28px; }
+
+    .tabs { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:24px; gap:4px; }
+    .tab { flex:1; padding:9px; border:none; background:transparent; color:var(--text-dim); font-family:'Syne',sans-serif; font-size:13px; font-weight:700; border-radius:7px; cursor:pointer; transition:all 0.2s; }
+    .tab.active { background:var(--accent); color:white; }
+
+    .form-group { margin-bottom:16px; }
+    .form-label { display:block; font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.5px; }
+    .form-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:12px 14px; border-radius:9px; font-family:'Syne',sans-serif; font-size:14px; outline:none; transition:all 0.2s; }
+    .form-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+    .form-input::placeholder { color:#cbd5e1; }
+
+    .btn-submit { width:100%; background:var(--accent); color:white; border:none; padding:13px; border-radius:9px; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; margin-top:4px; }
+    .btn-submit:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 8px 24px rgba(37,99,235,0.25); }
+
+    .msg { padding:11px 14px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:16px; display:none; border:1px solid; }
+    .msg.error   { background:rgba(220,38,38,0.06); border-color:var(--danger); color:var(--danger); display:block; }
+    .msg.success { background:rgba(5,150,105,0.06); border-color:var(--accent3); color:var(--accent3); display:block; }
+
+    .hint-box { margin-top:20px; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+    .hint-badge { font-family:'Space Mono',monospace; font-size:9px; font-weight:700; background:rgba(37,99,235,0.1); color:var(--accent); padding:3px 8px; border-radius:5px; letter-spacing:1px; flex-shrink:0; }
+    .hint-text { font-size:12px; color:var(--text-dim); }
+    .hint-text strong { color:var(--text); }
+
+    .email-info { font-size:11px; color:var(--text-dim); margin-top:5px; display:block; }
+
+    @media (max-width:768px) {
+      body { grid-template-columns:1fr; }
+      .left-panel { display:none; }
+      .right-panel { padding:32px 24px; min-height:100vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GAUCHE -->
+<div class="left-panel">
+  <div class="left-logo">
+    <div class="left-logo-mark">S</div>
+    <div>
+      <div class="left-logo-name">SalesIQ</div>
+      <div class="left-logo-sub">Analyse Intelligente</div>
+    </div>
+  </div>
+  <div class="left-content">
+    <h1>Pilotez vos ventes<br/>avec <span>precision</span></h1>
+    <p>Chaque compte est personnel et securise. Vos donnees ne sont visibles que par vous.</p>
+    <div class="features">
+      <div class="feature-item">
+        <div class="feature-icon">STAT</div>
+        <div class="feature-text"><strong>Statistiques personnelles</strong><span>CA, benefice, marge, top produit</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">MAIL</div>
+        <div class="feature-text"><strong>Alertes par email</strong><span>Rapport envoye apres chaque import</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">LOCK</div>
+        <div class="feature-text"><strong>Donnees isolees</strong><span>Chaque compte voit uniquement ses fichiers</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">EXPO</div>
+        <div class="feature-text"><strong>Export PDF et Excel</strong><span>Rapports professionnels en un clic</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="left-footer">SalesIQ &copy; 2026 — Tableau de bord de ventes</div>
+</div>
+
+<!-- DROITE -->
+<div class="right-panel">
+  <div class="auth-box">
+    <h2 id="auth-title">Bon retour</h2>
+    <p class="subtitle" id="auth-subtitle">Connectez-vous pour acceder a votre tableau de bord</p>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Connexion</button>
+      <button class="tab" onclick="switchTab('register')">Creer un compte</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <!-- LOGIN -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Nom d'utilisateur</label>
+        <input type="text" id="login-user" class="form-input" placeholder="Votre nom d'utilisateur"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input type="password" id="login-pw" class="form-input" placeholder="Votre mot de passe" onkeydown="if(event.key==='Enter') doLogin()"/>
+      </div>
+      <button class="btn-submit" onclick="doLogin()">Se connecter</button>
+      <div class="hint-box">
+        <div class="hint-badge">ADMIN</div>
+        <div class="hint-text">Compte par defaut : <strong>admin</strong> / <strong>admin123</strong></div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="form-register" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Nom d'utilisateur</label>
+        <input type="text" id="reg-user" class="form-input" placeholder="Choisissez un nom"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse email *</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="votre@email.com"/>
+        <span class="email-info">Vous recevrez vos rapports de ventes a cette adresse</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input type="password" id="reg-pw" class="form-input" placeholder="Minimum 6 caracteres" onkeydown="if(event.key==='Enter') doRegister()"/>
+      </div>
+      <button class="btn-submit" onclick="doRegister()">Creer mon compte</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('form-login').style.display    = tab==='login'    ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab==='register' ? 'block' : 'none';
+  document.getElementById('msg').className = 'msg';
+  if (tab==='login') {
+    document.getElementById('auth-title').textContent    = 'Bon retour';
+    document.getElementById('auth-subtitle').textContent = "Connectez-vous pour acceder a votre tableau de bord";
+  } else {
+    document.getElementById('auth-title').textContent    = 'Creer un compte';
+    document.getElementById('auth-subtitle').textContent = "Rejoignez SalesIQ — vos donnees restent privees";
+  }
+}
+
+function showMsg(text, type) {
+  const m = document.getElementById('msg');
+  m.textContent = text; m.className = 'msg ' + type;
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pw').value.trim();
+  if (!username || !password) return showMsg('Remplis tous les champs', 'error');
+  const res  = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password}) });
+  const data = await res.json();
+  if (data.success) { showMsg('Connexion reussie...', 'success'); setTimeout(() => window.location.href='/', 700); }
+  else { showMsg(data.error || 'Identifiants incorrects', 'error'); }
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-user').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-pw').value.trim();
+  if (!username || !email || !password) return showMsg('Tous les champs sont obligatoires', 'error');
+  if (!email.includes('@')) return showMsg('Adresse email invalide', 'error');
+  if (password.length < 6) return showMsg('Mot de passe trop court (minimum 6 caracteres)', 'error');
+  const res  = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email, password}) });
+  const data = await res.json();
+  if (data.success) { showMsg('Compte cree ! Vous pouvez vous connecter.', 'success'); setTimeout(() => switchTab('login'), 1200); }
+  else { showMsg(data.error || 'Erreur', 'error'); }
+}
+</script>
+</body>
+</html>

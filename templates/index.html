@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>SalesIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-mark">S</span>
+      <div><div class="logo-name">SalesIQ</div><div class="logo-sub">Analyse Intelligente</div></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active"   onclick="showSection('upload')">Import</button>
+      <button class="nav-btn" id="nav-dashboard" onclick="showSection('dashboard')" disabled>Dashboard</button>
+      <button class="nav-btn" id="nav-vendeurs"  onclick="showSection('vendeurs')"  disabled>Vendeurs</button>
+      <button class="nav-btn" id="nav-clients"   onclick="showSection('clients')"   disabled>Clients</button>
+      <button class="nav-btn" id="nav-alertes"   onclick="showSection('alertes')"   disabled>Alertes</button>
+      <button class="nav-btn" id="nav-prev"      onclick="showSection('previsions')" disabled>Previsions</button>
+      <button class="nav-btn" id="nav-carte"     onclick="showSection('carte')"     disabled>Carte</button>
+      <button class="nav-btn"                    onclick="showSection('saisie')">Saisie</button>
+      <button class="nav-btn"                    onclick="showSection('historique')">Historique</button>
+      <button class="nav-btn" id="nav-comp"      onclick="showSection('comparer')"  disabled>Comparer</button>
+      <button class="nav-btn" id="nav-data"      onclick="showSection('data')"      disabled>Donnees</button>
+    </nav>
+    <div class="header-right">
+      <div class="export-btns" id="export-zone" style="display:none">
+        <button class="btn-export pdf"   onclick="exportPDF()">PDF</button>
+        <button class="btn-export excel" onclick="exportExcel()">Excel</button>
+      </div>
+      <div class="user-badge">{{ username }}<a href="/logout" class="logout-btn">Deconnexion</a></div>
+      <button class="hamburger" id="hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-btn active" onclick="showSection('upload');closeMobileNav()">Import</button>
+  <button class="mobile-nav-btn" id="mob-dashboard" onclick="showSection('dashboard');closeMobileNav()" disabled>Dashboard</button>
+  <button class="mobile-nav-btn" id="mob-vendeurs"  onclick="showSection('vendeurs');closeMobileNav()"  disabled>Vendeurs</button>
+  <button class="mobile-nav-btn" id="mob-clients"   onclick="showSection('clients');closeMobileNav()"   disabled>Clients</button>
+  <button class="mobile-nav-btn" id="mob-alertes"   onclick="showSection('alertes');closeMobileNav()"   disabled>Alertes</button>
+  <button class="mobile-nav-btn" id="mob-prev"      onclick="showSection('previsions');closeMobileNav()" disabled>Previsions</button>
+  <button class="mobile-nav-btn" id="mob-carte"     onclick="showSection('carte');closeMobileNav()"     disabled>Carte</button>
+  <button class="mobile-nav-btn"                    onclick="showSection('saisie');closeMobileNav()">Saisie</button>
+  <button class="mobile-nav-btn"                    onclick="showSection('historique');closeMobileNav()">Historique</button>
+  <button class="mobile-nav-btn" id="mob-comp"      onclick="showSection('comparer');closeMobileNav()"  disabled>Comparer</button>
+  <button class="mobile-nav-btn" id="mob-data"      onclick="showSection('data');closeMobileNav()"      disabled>Donnees</button>
+  <div class="mobile-nav-divider"></div>
+  <div class="mobile-export-row" id="mob-export" style="display:none">
+    <button class="btn-export pdf" onclick="exportPDF();closeMobileNav()">PDF</button>
+    <button class="btn-export excel" onclick="exportExcel();closeMobileNav()">Excel</button>
+  </div>
+  <div class="mobile-nav-divider"></div>
+  <a href="/logout" class="mobile-logout">Se deconnecter</a>
+</div>
+
+<!-- IMPORT -->
+<section id="section-upload" class="section active">
+  <div class="upload-hero">
+    <div class="hero-text">
+      <h1>Analysez vos<br/><span class="accent">ventes en secondes</span></h1>
+      <p>Importez n'importe quel fichier Excel ou CSV. Peu importe les noms de colonnes — vous les configurerez a l'etape suivante.</p>
+    </div>
+    <div class="upload-card" id="drop-zone">
+      <div class="upload-icon">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h2>Glissez votre fichier ici</h2>
+      <p class="upload-hint">ou cliquez pour parcourir</p>
+      <p class="upload-formats">Excel (.xlsx) &nbsp;·&nbsp; CSV (.csv)</p>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none"/>
+      <button class="btn-primary" onclick="document.getElementById('file-input').click()">Choisir un fichier</button>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:8px">Tous types de colonnes acceptes</p>
+    </div>
+  </div>
+  <div class="progress-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <p id="progress-text">Lecture du fichier...</p>
+  </div>
+</section>
+
+<!-- MAPPING -->
+<section id="section-mapping" class="section">
+  <div class="section-toolbar">
+    <h2>Configurer les colonnes</h2>
+    <button class="btn-reset" onclick="showSection('upload')">Annuler</button>
+  </div>
+  <p style="color:var(--text-dim);font-size:14px;margin-bottom:20px">Associez chaque colonne de votre fichier au champ correspondant. Les colonnes reconnues automatiquement sont pre-remplies en vert.</p>
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-header"><h3>Apercu de votre fichier</h3><span id="mapping-rows-count" style="font-size:12px;color:var(--text-dim)"></span></div>
+    <div class="table-wrap" style="box-shadow:none;border:none">
+      <table class="data-table" style="min-width:auto">
+        <thead id="apercu-head"></thead>
+        <tbody id="apercu-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-header"><h3>Association des colonnes</h3></div>
+    <div id="mapping-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button class="btn-success" onclick="confirmerMapping()">Analyser les donnees</button>
+    <span style="font-size:12px;color:var(--text-dim)">* Quantite et Prix sont obligatoires</span>
+  </div>
+  <div id="mapping-error" style="display:none;margin-top:12px;padding:12px 16px;background:rgba(220,38,38,0.06);border:1px solid #dc2626;border-radius:8px;color:#dc2626;font-size:13px;font-weight:600"></div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="section-dashboard" class="section">
+  <div class="fichier-actif-bar" id="fichier-actif-bar" style="display:none">
+    <span class="fichier-actif-label">Fichier :</span>
+    <span class="fichier-actif-nom" id="fichier-actif-nom">—</span>
+    <button class="btn-changer" onclick="showSection('historique')">Changer</button>
+  </div>
+  <div class="filters-bar">
+    <div class="filter-group"><label>Date debut</label><input type="date" id="f-date-debut" class="filter-input" onchange="applyFilters()"/></div>
+    <div class="filter-group"><label>Date fin</label><input type="date" id="f-date-fin" class="filter-input" onchange="applyFilters()"/></div>
+    <div class="filter-group"><label>Ville</label><select id="f-ville" class="filter-input" onchange="applyFilters()"><option value="">Toutes</option></select></div>
+    <div class="filter-group"><label>Produit</label><select id="f-produit" class="filter-input" onchange="applyFilters()"><option value="">Tous</option></select></div>
+    <button class="btn-reset" onclick="resetFilters()">Reinitialiser</button>
+  </div>
+  <div class="kpis-grid" id="kpis-grid"></div>
+  <div class="charts-row"><div class="chart-card wide">
+    <div class="chart-header"><h3>Evolution du CA</h3>
+      <div class="chart-controls">
+        <button class="ctrl-btn active" onclick="switchView('date',this)">Par Jour</button>
+        <button class="ctrl-btn" onclick="switchView('mois',this)">Par Mois</button>
+      </div>
+    </div>
+    <canvas id="chart-evolution"></canvas>
+  </div></div>
+  <div class="charts-row two-col">
+    <div class="chart-card"><div class="chart-header"><h3>Top Produits</h3></div><canvas id="chart-produits"></canvas></div>
+    <div class="chart-card"><div class="chart-header"><h3>Ventes par Ville</h3></div><canvas id="chart-villes"></canvas></div>
+  </div>
+  <div class="charts-row"><div class="chart-card"><div class="chart-header"><h3>CA par Produit</h3></div><canvas id="chart-ca-produit"></canvas></div></div>
+</section>
+
+<!-- VENDEURS -->
+<section id="section-vendeurs" class="section">
+  <div class="section-toolbar"><h2>Tableau de Bord Vendeurs</h2><button class="btn-primary small" onclick="loadVendeurs()">Rafraichir</button></div>
+  <div class="kpis-grid" id="vendeurs-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px"></div>
+  <div class="charts-row two-col" style="margin-bottom:16px">
+    <div class="chart-card"><div class="chart-header"><h3>CA par Vendeur</h3></div><canvas id="chart-vendeur-ca"></canvas></div>
+    <div class="chart-card"><div class="chart-header"><h3>Benefice par Vendeur</h3></div><canvas id="chart-vendeur-ben"></canvas></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Vendeur</th><th>Nb Ventes</th><th>CA Total</th><th>Benefice</th><th>Panier Moyen</th><th>Nb Clients</th><th>Quantite</th></tr></thead>
+      <tbody id="vendeurs-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CLIENTS -->
+<section id="section-clients" class="section">
+  <div class="section-toolbar"><h2>Gestion des Clients</h2><input type="text" id="client-search" class="search-box" placeholder="Rechercher..." oninput="filterClients()"/></div>
+  <div class="kpis-grid" id="clients-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px"></div>
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table class="data-table">
+      <thead><tr><th>Client</th><th>Nb Achats</th><th>CA Total</th><th>Panier Moyen</th><th>Benefice</th><th>Derniere Visite</th><th>Detail</th></tr></thead>
+      <tbody id="clients-body"></tbody>
+    </table>
+  </div>
+  <div id="client-detail" style="display:none">
+    <div class="section-toolbar"><h3 id="client-detail-nom"></h3><button class="btn-reset" onclick="document.getElementById('client-detail').style.display='none'">Fermer</button></div>
+    <div class="table-wrap">
+      <table class="data-table"><thead><tr><th>Date</th><th>Produit</th><th>Categorie</th><th>Qte</th><th>Prix</th><th>Montant</th><th>Ville</th><th>Paiement</th><th>Statut</th></tr></thead>
+      <tbody id="client-achats-body"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- ALERTES -->
+<section id="section-alertes" class="section">
+  <div class="section-toolbar"><h2>Alertes et Objectifs</h2><button class="btn-primary small" onclick="toggleObjectifForm()">Mes objectifs</button></div>
+  <div id="objectif-form" class="objectif-card" style="display:none">
+    <div class="objectif-title">Mes Objectifs</div>
+    <div class="objectif-grid">
+      <div class="filter-group"><label class="form-label">Objectif CA mensuel (FCFA)</label><input type="number" id="obj-ca" class="filter-input" placeholder="ex: 5000000"/></div>
+      <div class="filter-group"><label class="form-label">Seuil alerte baisse (%)</label><input type="number" id="obj-baisse" class="filter-input" value="20"/></div>
+      <div class="filter-group"><label class="form-label">Produit faible (ventes min)</label><input type="number" id="obj-faible" class="filter-input" value="3"/></div>
+    </div>
+    <button class="btn-primary small" style="margin-top:14px" onclick="saveObjectifs()">Sauvegarder</button>
+  </div>
+  <div id="alertes-list"></div>
+</section>
+
+<!-- PREVISIONS -->
+<section id="section-previsions" class="section">
+  <div class="section-toolbar"><h2>Previsions des Ventes</h2><button class="btn-primary small" onclick="loadPrevisions()">Recalculer</button></div>
+  <div id="prev-error" class="prev-error" style="display:none"></div>
+  <div id="prev-content" style="display:none">
+    <div class="prev-kpis" id="prev-kpis"></div>
+    <div class="chart-card" style="margin-bottom:16px">
+      <div class="chart-header"><h3>Evolution et Previsions du CA</h3>
+        <div class="prev-legend"><span class="legend-item hist">Historique</span><span class="legend-item prev">Prevision</span></div>
+      </div>
+      <canvas id="chart-previsions"></canvas>
+    </div>
+    <div class="charts-row two-col">
+      <div class="chart-card"><div class="chart-header"><h3>Historique Benefice</h3></div><canvas id="chart-prev-benefice"></canvas></div>
+      <div class="chart-card"><div class="chart-header"><h3>Quantites par Mois</h3></div><canvas id="chart-prev-qte"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- CARTE -->
+<section id="section-carte" class="section">
+  <div class="section-toolbar"><h2>Carte des Ventes par Ville</h2><button class="btn-primary small" onclick="loadCarte()">Rafraichir</button></div>
+  <div class="kpis-grid" id="carte-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px"></div>
+  <div class="charts-row two-col" style="margin-bottom:20px">
+    <div class="chart-card"><div class="chart-header"><h3>CA par Ville</h3></div><canvas id="chart-carte-ca"></canvas></div>
+    <div class="chart-card"><div class="chart-header"><h3>Repartition</h3></div><canvas id="chart-carte-pie"></canvas></div>
+  </div>
+  <div class="carte-container"><h3 style="margin-bottom:16px;font-size:14px;font-weight:700">Detail par Ville</h3><div class="carte-villes" id="carte-villes"></div></div>
+</section>
+
+<!-- FACTURATION -->
+<section id="section-saisie" class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+
+    <!-- FORMULAIRE NOUVELLE FACTURE -->
+    <div>
+      <div class="section-toolbar"><h2>Nouvelle Facture</h2></div>
+
+      <!-- Infos generales -->
+      <div class="chart-card" style="margin-bottom:16px">
+        <div class="chart-header"><h3>Informations generales</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label class="form-label">Date *</label><input type="date" id="f-date" class="form-input-field"/></div>
+          <div class="form-group"><label class="form-label">Client *</label><input type="text" id="f-client" class="form-input-field" placeholder="Nom du client"/></div>
+          <div class="form-group"><label class="form-label">Ville</label><input type="text" id="f-ville" class="form-input-field" placeholder="ex: Dakar"/></div>
+          <div class="form-group"><label class="form-label">Vendeur</label><input type="text" id="f-vendeur" class="form-input-field" placeholder="ex: Aissatou"/></div>
+          <div class="form-group"><label class="form-label">Mode de paiement</label>
+            <select id="f-paiement" class="form-input-field">
+              <option>Cash</option><option>Mobile Money</option><option>Orange Money</option>
+              <option>Wave</option><option>Virement</option><option>Cheque</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Statut</label>
+            <select id="f-statut" class="form-input-field">
+              <option>Paye</option><option>En attente</option><option>Annule</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lignes de produits -->
+      <div class="chart-card" style="margin-bottom:16px">
+        <div class="chart-header">
+          <h3>Produits</h3>
+          <button class="btn-primary small" onclick="ajouterLigne()">+ Ajouter un produit</button>
+        </div>
+        <div id="lignes-container"></div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;color:var(--text-dim)">Total facture :</span>
+          <span id="total-facture" style="font-size:20px;font-weight:800;color:var(--accent)">0 FCFA</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <button class="btn-success" onclick="creerFacture()">Creer la facture</button>
+        <button class="btn-reset" onclick="resetFacture()">Effacer</button>
+      </div>
+      <div id="facture-success" class="saisie-success" style="margin-top:12px">Facture creee !</div>
+    </div>
+
+    <!-- LISTE DES FACTURES -->
+    <div>
+      <div class="section-toolbar">
+        <h2>Mes Factures</h2>
+        <button class="btn-primary small" onclick="loadFactures()">Rafraichir</button>
+      </div>
+      <div id="factures-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HISTORIQUE -->
+<section id="section-historique" class="section">
+  <div class="section-toolbar"><h2>Historique des imports</h2><button class="btn-primary small" onclick="loadHistorique()">Rafraichir</button></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Fichier</th><th>Lignes</th><th>Importe le</th><th>Par</th><th>Afficher</th><th>Supprimer</th></tr></thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COMPARER -->
+<section id="section-comparer" class="section">
+  <h2 style="margin-bottom:20px">Comparer deux periodes</h2>
+  <div class="compare-form">
+    <div class="compare-col"><h3>Periode 1</h3>
+      <div class="filter-group" style="margin-bottom:12px"><label class="form-label">Date debut</label><input type="date" id="p1-debut" class="filter-input"/></div>
+      <div class="filter-group"><label class="form-label">Date fin</label><input type="date" id="p1-fin" class="filter-input"/></div>
+    </div>
+    <div class="compare-vs">VS</div>
+    <div class="compare-col"><h3>Periode 2</h3>
+      <div class="filter-group" style="margin-bottom:12px"><label class="form-label">Date debut</label><input type="date" id="p2-debut" class="filter-input"/></div>
+      <div class="filter-group"><label class="form-label">Date fin</label><input type="date" id="p2-fin" class="filter-input"/></div>
+    </div>
+  </div>
+  <button class="btn-primary" style="margin-top:16px" onclick="doComparer()">Lancer la comparaison</button>
+  <div id="compare-result" style="margin-top:24px"></div>
+</section>
+
+<!-- DONNEES -->
+<section id="section-data" class="section">
+  <div class="section-toolbar"><h2>Donnees importees</h2><input type="text" id="search-input" class="search-box" placeholder="Rechercher..." oninput="filterTable()"/></div>
+  <div class="table-wrap">
+    <table class="data-table"><thead><tr>
+      <th onclick="sortTable(0)">Date</th><th onclick="sortTable(1)">Produit</th>
+      <th onclick="sortTable(2)">Qte</th><th onclick="sortTable(3)">Prix</th>
+      <th onclick="sortTable(4)">Ville</th><th onclick="sortTable(5)">Montant</th>
+    </tr></thead><tbody id="table-body"></tbody></table>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

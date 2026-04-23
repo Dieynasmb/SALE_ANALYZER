@@ -1,0 +1,16 @@
+id,nom_produit,categorie,prix_fcfa,stock,description
+1,Ordinateur portable,Informatique,350000,10,Ordinateur portable performant
+2,Smartphone,Téléphonie,150000,25,Smartphone Android
+3,Casque Bluetooth,Accessoires,25000,40,Casque sans fil
+4,Clavier mécanique,Informatique,45000,15,Clavier RGB
+5,Souris sans fil,Accessoires,15000,30,Souris ergonomique
+6,Montre connectée,Gadgets,60000,12,Montre intelligente
+7,Sac à dos,Accessoires,20000,20,Sac résistant
+8,Chargeur rapide,Accessoires,10000,50,Chargeur USB rapide
+9,Tablette,Informatique,180000,8,Tablette tactile
+10,Caméra de surveillance,Sécurité,75000,6,Caméra HD
+11,Routeur WiFi,Réseau,40000,14,Routeur haute vitesse
+12,Disque dur externe,Stockage,55000,18,Stockage sécurisé
+13,Clé USB,Stockage,8000,60,Clé USB 32GB
+14,Écouteurs,Accessoires,12000,35,Écouteurs stéréo
+15,Power bank,Accessoires,15000,22,Batterie externe

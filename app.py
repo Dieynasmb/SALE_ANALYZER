@@ -596,8 +596,8 @@ def creer_facture():
 def facture_pdf(fid):
     conn  = sqlite3.connect(DB_PATH)
     fiche = conn.execute(
-        "SELECT f.*,u.username FROM fichiers f JOIN users u ON f.user_id=u.id WHERE f.id=? AND f.user_id=?",
-        (fid, session['user_id'])).fetchone()
+        "SELECT f.*,u.username FROM fichiers f JOIN users u ON f.user_id=u.id WHERE f.id=?",
+        (fid,)).fetchone()
     if not fiche: conn.close(); return jsonify({'error': 'Facture introuvable'}), 404
     lignes = conn.execute(
         "SELECT produit,categorie,quantite,prix,cout,montant,benefice,client,ville,vendeur,mode_paiement,statut,date FROM sales WHERE fichier_id=?",

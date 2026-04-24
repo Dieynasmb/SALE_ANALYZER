@@ -227,63 +227,45 @@
   <div class="carte-container"><h3 style="margin-bottom:16px;font-size:14px;font-weight:700">Detail par Ville</h3><div class="carte-villes" id="carte-villes"></div></div>
 </section>
 
-<!-- FACTURATION -->
+<!-- SAISIE -->
 <section id="section-saisie" class="section">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
-
-    <!-- FORMULAIRE NOUVELLE FACTURE -->
-    <div>
-      <div class="section-toolbar"><h2>Nouvelle Facture</h2></div>
-
-      <!-- Infos generales -->
-      <div class="chart-card" style="margin-bottom:16px">
-        <div class="chart-header"><h3>Informations generales</h3></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group"><label class="form-label">Date *</label><input type="date" id="f-date" class="form-input-field"/></div>
-          <div class="form-group"><label class="form-label">Client *</label><input type="text" id="f-client" class="form-input-field" placeholder="Nom du client"/></div>
-          <div class="form-group"><label class="form-label">Ville</label><input type="text" id="f-ville" class="form-input-field" placeholder="ex: Dakar"/></div>
-          <div class="form-group"><label class="form-label">Vendeur</label><input type="text" id="f-vendeur" class="form-input-field" placeholder="ex: Aissatou"/></div>
-          <div class="form-group"><label class="form-label">Mode de paiement</label>
-            <select id="f-paiement" class="form-input-field">
-              <option>Cash</option><option>Mobile Money</option><option>Orange Money</option>
-              <option>Wave</option><option>Virement</option><option>Cheque</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Statut</label>
-            <select id="f-statut" class="form-input-field">
-              <option>Paye</option><option>En attente</option><option>Annule</option>
-            </select>
-          </div>
-        </div>
+  <div class="section-toolbar"><h2>Saisie Manuelle d'une Vente</h2></div>
+  <div class="saisie-form">
+    <div class="saisie-grid">
+      <div class="form-group"><label class="form-label">Date *</label><input type="date" id="s-date" class="form-input-field"/></div>
+      <div class="form-group"><label class="form-label">Produit *</label><input type="text" id="s-produit" class="form-input-field" placeholder="ex: Mascara"/></div>
+      <div class="form-group"><label class="form-label">Categorie</label><input type="text" id="s-categorie" class="form-input-field" placeholder="ex: Maquillage"/></div>
+      <div class="form-group"><label class="form-label">Quantite *</label><input type="number" id="s-quantite" class="form-input-field" placeholder="1" min="1"/></div>
+      <div class="form-group"><label class="form-label">Prix de vente (FCFA) *</label><input type="number" id="s-prix" class="form-input-field" placeholder="8400"/></div>
+      <div class="form-group"><label class="form-label">Cout d'achat (FCFA)</label><input type="number" id="s-cout" class="form-input-field" placeholder="3500"/></div>
+      <div class="form-group"><label class="form-label">Ville</label><input type="text" id="s-ville" class="form-input-field" placeholder="ex: Dakar"/></div>
+      <div class="form-group"><label class="form-label">Vendeur</label><input type="text" id="s-vendeur" class="form-input-field" placeholder="ex: Aissatou"/></div>
+      <div class="form-group"><label class="form-label">Client</label><input type="text" id="s-client" class="form-input-field" placeholder="ex: Fatou Diallo"/></div>
+      <div class="form-group"><label class="form-label">Mode de paiement</label>
+        <select id="s-paiement" class="form-input-field">
+          <option>Cash</option><option>Mobile Money</option><option>Orange Money</option>
+          <option>Wave</option><option>Virement</option><option>Cheque</option>
+        </select>
       </div>
-
-      <!-- Lignes de produits -->
-      <div class="chart-card" style="margin-bottom:16px">
-        <div class="chart-header">
-          <h3>Produits</h3>
-          <button class="btn-primary small" onclick="ajouterLigne()">+ Ajouter un produit</button>
-        </div>
-        <div id="lignes-container"></div>
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:14px;color:var(--text-dim)">Total facture :</span>
-          <span id="total-facture" style="font-size:20px;font-weight:800;color:var(--accent)">0 FCFA</span>
-        </div>
+      <div class="form-group"><label class="form-label">Statut</label>
+        <select id="s-statut" class="form-input-field">
+          <option>Paye</option><option>En attente</option><option>Annule</option>
+        </select>
       </div>
-
-      <div style="display:flex;gap:12px">
-        <button class="btn-success" onclick="creerFacture()">Creer la facture</button>
-        <button class="btn-reset" onclick="resetFacture()">Effacer</button>
-      </div>
-      <div id="facture-success" class="saisie-success" style="margin-top:12px">Facture creee !</div>
     </div>
-
-    <!-- LISTE DES FACTURES -->
-    <div>
-      <div class="section-toolbar">
-        <h2>Mes Factures</h2>
-        <button class="btn-primary small" onclick="loadFactures()">Rafraichir</button>
-      </div>
-      <div id="factures-list"></div>
+    <div class="saisie-actions">
+      <button class="btn-success" onclick="submitSaisie()">Enregistrer la vente</button>
+      <button class="btn-reset" onclick="resetSaisie()">Effacer</button>
+    </div>
+    <div id="saisie-success" class="saisie-success">Vente enregistree !</div>
+  </div>
+  <div style="margin-top:24px">
+    <div class="section-toolbar"><h3>Ventes saisies</h3></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Produit</th><th>Qte</th><th>Prix</th><th>Ville</th><th>Client</th><th>Montant</th><th>Statut</th><th>Supprimer</th></tr></thead>
+        <tbody id="saisie-body"></tbody>
+      </table>
     </div>
   </div>
 </section>

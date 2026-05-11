@@ -762,6 +762,35 @@ def delete_facture(fid):
     conn.commit(); conn.close()
     return jsonify({'success': True})
 
+# ── SAISIE ──
+@app.route('/saisie', methods=['POST'])
+@login_required
+def saisie():
+    d = request.get_json()
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        cur = conn.execute(
+            "INSERT INTO fichiers (nom,nb_lignes,importe_le,user_id) VALUES (?,?,?,?)",
+            ('Saisie manuelle', 1, datetime.now().strftime('%Y-%m-%d %H:%M'), session['user_id']))
+        fid = cur.lastrowid
+        q = float(d.get('quantite', 1))
+        p = float(d.get('prix', 0))
+        c = float(d.get('cout', 0))
+        sql = ("INSERT INTO sales (date,produit,categorie,quantite,prix,cout,ville,vendeur,client,"
+               "mode_paiement,statut,montant,benefice,fichier_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        conn.execute(sql, (
+            d.get('date', datetime.now().strftime('%Y-%m-%d')),
+            d.get('produit',''), d.get('categorie','N/A'),
+            q, p, c,
+            d.get('ville','N/A'), d.get('vendeur','N/A'), d.get('client','N/A'),
+            d.get('mode_paiement','N/A'), d.get('statut','Paye'),
+            q*p, q*(p-c), fid))
+        conn.commit(); conn.close()
+        return jsonify({'success': True, 'fichier_id': fid})
+    except Exception as e:
+        conn.close()
+        return jsonify({'error': str(e)}), 500
+
 # ── CARTE ──
 @app.route('/carte')
 @login_required

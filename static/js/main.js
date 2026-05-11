@@ -377,151 +377,102 @@ async function loadAlertes() {
   container.innerHTML=alertes.map((a,i)=>`<div class="alert-card ${a.type}" style="animation-delay:${i*0.07}s"><div class="alert-icon-box ${a.type}">${a.icon}</div><div><div class="alert-titre">${a.titre}</div><div class="alert-message">${a.message}</div></div></div>`).join('');
 }
 
-// ── FACTURATION ──
-let lignesCount = 0;
+// ── SAISIE ──
+let saisiesIds = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  const d = document.getElementById('f-date');
+  const d = document.getElementById('s-date');
   if (d) d.value = new Date().toISOString().split('T')[0];
-  ajouterLigne(); // Ajouter une premiere ligne vide
 });
 
-function ajouterLigne() {
-  lignesCount++;
-  const id = 'ligne-' + lignesCount;
-  const div = document.createElement('div');
-  div.className = 'ligne-produit';
-  div.id = id;
-  div.innerHTML = `
-    <input type="text" placeholder="Produit *" class="form-input-field l-produit" style="font-size:13px"/>
-    <input type="text" placeholder="Categorie" class="form-input-field l-categorie" style="font-size:13px"/>
-    <input type="number" placeholder="Qte" class="form-input-field l-quantite" value="1" min="1" oninput="calculerTotal()" style="font-size:13px"/>
-    <input type="number" placeholder="Prix FCFA" class="form-input-field l-prix" oninput="calculerTotal()" style="font-size:13px"/>
-    <input type="number" placeholder="Cout FCFA" class="form-input-field l-cout" style="font-size:13px"/>
-    <button class="btn-remove-ligne" onclick="supprimerLigne('${id}')">×</button>`;
-  document.getElementById('lignes-container').appendChild(div);
-}
-
-function supprimerLigne(id) {
-  const el = document.getElementById(id);
-  if (el && document.querySelectorAll('.ligne-produit').length > 1) {
-    el.remove(); calculerTotal();
-  } else {
-    showToast('Il faut au moins un produit', 'error');
-  }
-}
-
-function calculerTotal() {
-  let total = 0;
-  document.querySelectorAll('.ligne-produit').forEach(ligne => {
-    const q = parseFloat(ligne.querySelector('.l-quantite')?.value || 0);
-    const p = parseFloat(ligne.querySelector('.l-prix')?.value || 0);
-    total += q * p;
+async function submitSaisie() {
+  const produit  = document.getElementById('s-produit').value.trim();
+  const quantite = document.getElementById('s-quantite').value;
+  const prix     = document.getElementById('s-prix').value;
+  if (!produit || !quantite || !prix) { showToast('Remplis Produit, Quantite et Prix', 'error'); return; }
+  const res = await fetch('/saisie', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      date:          document.getElementById('s-date').value,
+      produit, quantite, prix,
+      cout:          document.getElementById('s-cout').value || 0,
+      categorie:     document.getElementById('s-categorie').value || 'N/A',
+      ville:         document.getElementById('s-ville').value || 'N/A',
+      vendeur:       document.getElementById('s-vendeur').value || 'N/A',
+      client:        document.getElementById('s-client').value || 'N/A',
+      mode_paiement: document.getElementById('s-paiement').value,
+      statut:        document.getElementById('s-statut').value,
+    })
   });
-  const el = document.getElementById('total-facture');
-  if (el) el.textContent = new Intl.NumberFormat('fr-FR').format(Math.round(total)) + ' FCFA';
-}
-
-async function creerFacture() {
-  const client = document.getElementById('f-client')?.value.trim();
-  if (!client) { showToast('Le nom du client est obligatoire', 'error'); return; }
-
-  const lignes = [];
-  let hasError = false;
-  document.querySelectorAll('.ligne-produit').forEach(ligne => {
-    const produit  = ligne.querySelector('.l-produit')?.value.trim();
-    const quantite = parseFloat(ligne.querySelector('.l-quantite')?.value || 0);
-    const prix     = parseFloat(ligne.querySelector('.l-prix')?.value || 0);
-    const cout     = parseFloat(ligne.querySelector('.l-cout')?.value || 0);
-    const categorie = ligne.querySelector('.l-categorie')?.value.trim() || 'N/A';
-    if (!produit || !prix) { hasError = true; return; }
-    lignes.push({ produit, categorie, quantite, prix, cout });
-  });
-
-  if (hasError || !lignes.length) { showToast('Remplis Produit et Prix pour chaque ligne', 'error'); return; }
-
-  const payload = {
-    date:          document.getElementById('f-date')?.value,
-    client,
-    ville:         document.getElementById('f-ville')?.value || 'N/A',
-    vendeur:       document.getElementById('f-vendeur')?.value || 'N/A',
-    mode_paiement: document.getElementById('f-paiement')?.value,
-    statut:        document.getElementById('f-statut')?.value,
-    lignes,
-  };
-
-  const res  = await fetch('/factures/creer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   const data = await res.json();
-
   if (data.success) {
-    showToast('Facture ' + data.numero + ' creee !', 'success');
-    const s = document.getElementById('facture-success');
-    if (s) { s.textContent = 'Facture ' + data.numero + ' creee avec succes !'; s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 4000); }
-    resetFacture();
-    loadFactures();
-    // Proposer de telecharger le PDF
-    setTimeout(() => { if (confirm('Telecharger la facture PDF ' + data.numero + ' ?')) window.open('/factures/' + data.fichier_id + '/pdf'); }, 500);
+    showToast('Vente enregistree !', 'success');
+    const s = document.getElementById('saisie-success');
+    if (s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 3000); }
+    resetSaisie();
+    loadSaisieHistory();
   } else {
     showToast('Erreur : ' + (data.error || 'Inconnue'), 'error');
   }
 }
 
-function resetFacture() {
-  document.getElementById('f-client').value  = '';
-  document.getElementById('f-ville').value   = '';
-  document.getElementById('f-vendeur').value = '';
-  document.getElementById('f-date').value    = new Date().toISOString().split('T')[0];
-  document.getElementById('lignes-container').innerHTML = '';
-  lignesCount = 0;
-  ajouterLigne();
-  calculerTotal();
+function resetSaisie() {
+  ['s-produit','s-categorie','s-quantite','s-prix','s-cout','s-ville','s-vendeur','s-client'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const d = document.getElementById('s-date');
+  if (d) d.value = new Date().toISOString().split('T')[0];
 }
 
-async function loadFactures() {
-  const res  = await fetch('/factures');
+async function loadSaisieHistory() {
+  const res  = await fetch('/historique');
   const data = await res.json();
-  const container = document.getElementById('factures-list');
-  if (!container) return;
-
-  if (!data.length) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim)">Aucune facture creee</div>';
+  const manuels = data.filter(f => f.nom === 'Saisie manuelle');
+  const body    = document.getElementById('saisie-body');
+  if (!body) return;
+  if (!manuels.length) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:20px">Aucune vente saisie</td></tr>';
     return;
   }
-
   const fmt = n => new Intl.NumberFormat('fr-FR').format(Math.round(n));
-  const sb  = s => {
-    if (!s) return '';
+  let allRows = [];
+  saisiesIds  = [];
+  for (const f of manuels) {
+    const r = await fetch('/stats?fichier_id=' + f.id);
+    if (r.ok) {
+      const d = await r.json();
+      (d.raw || []).forEach(row => { row._fichier_id = f.id; allRows.push(row); });
+      saisiesIds.push(f.id);
+    }
+  }
+  allRows.sort((a, b) => b.date > a.date ? 1 : -1);
+  const sb = s => {
+    if (!s || s === 'N/A') return '—';
     const sl  = s.toLowerCase();
-    const cls = sl.includes('pay') ? 'paye' : sl.includes('att') ? 'attente' : 'annule';
+    const cls = sl.includes('pay') ? 'paye' : sl.includes('att') ? 'attente' : sl.includes('ann') ? 'annule' : 'default';
     return `<span class="badge-statut ${cls}">${s}</span>`;
   };
-
-  container.innerHTML = data.map(f => `
-    <div class="facture-card">
-      <div class="facture-header">
-        <span class="facture-num">${f.numero}</span>
-        <span class="facture-total">${fmt(f.total)} FCFA</span>
-      </div>
-      <div class="facture-meta">
-        Client : <strong>${f.client}</strong> &nbsp;·&nbsp;
-        Date : ${f.date} &nbsp;·&nbsp;
-        ${f.nb_articles} article(s) &nbsp;·&nbsp;
-        ${sb(f.statut)}
-      </div>
-      <div class="facture-actions">
-        <button class="btn-facture-pdf" onclick="window.open('/factures/${f.id}/pdf')">Telecharger PDF</button>
-        <button class="btn-facture-del" onclick="deleteFacture(${f.id}, '${f.numero}')">Supprimer</button>
-      </div>
-    </div>`).join('');
+  body.innerHTML = allRows.map(row => `
+    <tr>
+      <td>${row.date||'—'}</td>
+      <td><strong>${row.produit||'—'}</strong></td>
+      <td>${fmt(row.quantite)}</td>
+      <td>${fmt(row.prix)} FCFA</td>
+      <td>${row.ville||'—'}</td>
+      <td>${row.client||'—'}</td>
+      <td class="montant">${fmt(row.montant)} FCFA</td>
+      <td>${sb(row.statut)}</td>
+      <td><button class="btn-delete" onclick="supprimerSaisie(${row._fichier_id})">Supprimer</button></td>
+    </tr>`).join('');
 }
 
-async function deleteFacture(id, num) {
-  if (!confirm('Supprimer la facture ' + num + ' ?')) return;
-  const res = await fetch('/factures/' + id + '/delete', { method: 'DELETE' });
-  if (res.ok) { showToast('Facture supprimee', 'success'); loadFactures(); }
+async function supprimerSaisie(fichier_id) {
+  if (!confirm('Supprimer cette vente ?')) return;
+  const res = await fetch('/historique/delete/' + fichier_id, { method: 'DELETE' });
+  if (res.ok) { showToast('Vente supprimee', 'success'); loadSaisieHistory(); }
+  else showToast('Erreur lors de la suppression', 'error');
 }
-
-function loadSaisieHistory() { loadFactures(); }
 
 // ── PREVISIONS ──
 async function loadPrevisions() {
